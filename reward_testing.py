@@ -13,17 +13,16 @@ class UAVEnv(gym.Env):
         super().__init__()
         # Environment parameters
         self.dt = 0.1  # time step
-        self.drone_mass = 1.5
+        self.drone_mass = 65
         self.payload_min = 0.0
-        self.payload_max = 1.5
+        self.payload_max = 30
         self.drag_coeff = 1.1
         self.fluid_density = 1.0
         self.cross_section_area = 0.08
         self.max_acc = 6.0
-        self.max_dacc = 4.0
-        self.max_speed = 12.0
-        self.max_dist = 200.0
-        self.max_steps = 800
+        self.max_speed = 20.0
+        self.max_dist = 1000.0
+        self.max_steps = 10000
         self.wind_max = 6.0
         self.goal_radius = 1.0
         self.alpha_energy = 0.05
@@ -38,7 +37,7 @@ class UAVEnv(gym.Env):
         high = np.array([ self.max_dist,  self.max_dist,  self.max_speed,  self.max_speed,
                           self.max_acc,  self.max_acc,  self.wind_max,  self.wind_max, self.payload_max], dtype=np.float32)
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
-        self.action_space = spaces.Box(low=-self.max_dacc, high=self.max_dacc, shape=(2,), dtype=np.float32)
+        self.action_space = spaces.Box(low=-self.max_acc, high=self.max_acc, shape=(2,), dtype=np.float32)
 
         # Random number generator
         self.np_random, _ = gym.utils.seeding.np_random(seed)
@@ -88,7 +87,7 @@ class UAVEnv(gym.Env):
     # Step the environment by one timestep
     def step(self, action):
         action = np.asarray(action, dtype=np.float32)
-        action = self._clip_vec(action, self.max_dacc)
+        action = self._clip_vec(action, self.max_acc)
         self.acc = self.acc + action
         self.acc = np.clip(self.acc, -self.max_acc, self.max_acc)
 
@@ -158,8 +157,8 @@ if __name__ == "__main__":
 
         env = DummyVecEnv([lambda: make_env_with_alpha(0)])
         model = PPO("MlpPolicy", env, verbose=0, n_steps=1024, batch_size=256,
-                    gae_lambda=0.95, gamma=0.995, n_epochs=20,
-                    learning_rate=3e-4, clip_range=0.2)
+                gae_lambda=0.95, gamma=0.995, n_epochs=20,
+                learning_rate=3e-4, clip_range=0.2, device="cpu")
 
         # Train agent
         model.learn(total_timesteps=200000)  # Reduced for faster testing
@@ -203,4 +202,5 @@ if __name__ == "__main__":
 
     plt.title("UAV Distance & Energy Consumption for Different α Values")
     fig.tight_layout()
-    plt.show()
+    plt.savefig("plot.png")
+    # tradeoff between energy and distance

@@ -13,16 +13,16 @@ class UAVEnv(gym.Env):
         super().__init__()
         # Environment parameters
         self.dt = 0.1  # time step
-        self.drone_mass = 1.5
+        self.drone_mass = 65
         self.payload_min = 0.0
-        self.payload_max = 1.5
+        self.payload_max = 30
         self.drag_coeff = 1.1
         self.fluid_density = 1.0
         self.cross_section_area = 0.08
         self.max_acc = 6.0
         self.max_dacc = 4.0
         self.max_speed = 12.0
-        self.max_dist = 200.0
+        self.max_dist = 2000.0
         self.max_steps = 800
         self.wind_max = 6.0
         self.goal_radius = 1.0
